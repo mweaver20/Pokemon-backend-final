@@ -7,6 +7,7 @@ public class Player {
     private String username;
     private int hp;
     private int level;
+    private String character;
 
     // Constructors, getters, setters...
 
@@ -43,6 +44,13 @@ public class Player {
 
     public void setLevel(int level) {
         this.level = level;
+    }
+    public String getCharacter() {
+        return character;
+    }
+
+    public void setCharacter(String character) {
+        this.character = character;
     }
 
 }

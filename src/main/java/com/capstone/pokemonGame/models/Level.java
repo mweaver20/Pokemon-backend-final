@@ -8,8 +8,9 @@ public class Level {
 
     // Constructors, getters, and setters
 
-    public Level() {
-        // Default constructor
+    public Level(int levelNumber, String levelTitle) {
+        this.levelNumber = levelNumber;
+        this.levelTitle = levelTitle;
     }
 
     public Level(int levelNumber, String levelTitle, String opponent, int opponentHP) {
