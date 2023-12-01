@@ -1,5 +1,6 @@
 package com.capstone.pokemonGame.models;
 
+import jakarta.persistence.Entity;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 
 
@@ -10,7 +11,7 @@ public class Player {
     private String character;
 
     // Constructors, getters, setters...
-
+    public Player(){};
     // Constructors
     public Player(String username) {
         // Default constructor
