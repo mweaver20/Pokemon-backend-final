@@ -1,6 +1,5 @@
 package com.capstone.pokemonGame.services;
 import com.capstone.pokemonGame.models.Player;
-import jakarta.persistence.criteria.CriteriaBuilder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;

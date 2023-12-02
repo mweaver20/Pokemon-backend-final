@@ -1,65 +1,97 @@
 package com.capstone.pokemonGame.services;
 
-import com.capstone.pokemonGame.models.Level;
-import com.capstone.pokemonGame.models.Levels;
-import com.capstone.pokemonGame.models.Player;
+import com.capstone.pokemonGame.models.*;
+import com.capstone.pokemonGame.repositories.ScoresRepository;
+import com.capstone.pokemonGame.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Scanner;
+//import java.util.Scanner;
 
 @Service
 public class LevelServices {
     private BattleServices bs;
-    private Scanner sc;
+    private AttackServices as;
+    private ScoresService ss;
+    private UserRepository us;
+    private ScoresRepository sr;
 
     @Autowired
-    public LevelServices(BattleServices bs){
+    public LevelServices(BattleServices bs, AttackServices as, UserRepository us, ScoresRepository sr){
         this.bs = bs;
-        this.sc = new Scanner(System.in);
+        this.as = as;
+        this.us = us;
+        this.sr = sr;
+        this.ss = new ScoresService(us, sr);
     }
 
     //plays single level
-    public void playLevel(Player player) {
+    public String playLevel(Player player) {
+        //getting info needed to play game
         int playerLevel = player.getLevel();
-        //move to outer function
-        //int playerHP = player.getHp();
         Level level = getLevelInfo(playerLevel);
+
+        String result = null;
 
         switch(level.getLevelTitle()) {
             case "battle":
                 int opponentHP = level.getOpponentHP();
-                while(opponentHP > 0) {
-                    String attack = getBattleOption(player);
+                int playerHP = player.getHp();
+                while(opponentHP > 0 && playerHP > 0) {
+                    //if attack is null then redirect to attack selection page which redirects users back to battle page
+                    String attack = as.getAttack();
+                    if(attack == null){
+                        String getAttack = "redirect:/verified/battle";
+                        return getAttack;
+                    }
+                    //battle
                     bs.battle(player,level, attack);
                 }
-                int newLevel = playerLevel + 1;
-                System.out.println("you have defeated your opponent! Moving on to level " + newLevel);
-                player.setLevel(newLevel);
+                //check players and opponents HP after each battle and redirect appropratly
+                if(playerHP <= 0){
+                    //redirect to game over page if player dies
+                    result = "redirect:/verified/gameOver";
+                } else if(opponentHP <= 0){
+                    //redirect to in between levels page if player wins level and increase players level property
+                    int newLevel = playerLevel + 1;
+                    //sets players new level
+                    player.setLevel(newLevel);
+                    //redirects users to in-between levels page;
+                    result = "redirect:/verified/levels";
+                }
                 break;
 
+
             case "pokestop":
-                System.out.println("Welcome to the poke stop! Lets se what we can do for your pokemon!");
                 bs.pokeStop(player);
-                System.out.println("Our nurses were able to increase your pokemons health to " + player.getHp() + "HP! Come again!");
-                System.out.println("Moving to next level");
                 int currentLevel = player.getLevel();
                 player.setLevel(currentLevel + 1);
+                result = "redirect:/verified/levels";
                 break;
 
             case "final":
+                int playHP = player.getHp();
                 int opHP = level.getOpponentHP();
-                while(opHP > 0) {
-                    String attack = getBattleOption(player);
+                while(opHP > 0 && playHP > 0) {
+                    String attack = as.getAttack();
+                    if(attack == null){
+                        String getAttack = "redirect:/verified/battle";
+                        return getAttack;
+                    }
                     bs.battle(player,level, attack);
                 }
-                System.out.println("Congrats! You have defeated all your opponents and finished the game!");
-                System.out.println("Your final score is" + player.getHp() + "!");
-                //add end of game services here
+                if(playHP <= 0){
+                    result = "redirect:/verified/gameOver";
+                } else if (opHP <= 0) {
+                    //sending players username and score into database
+                    ss.updateScoreByUsername(player.getUsername(), player.getHp());
+                    result = "redirect:/verified/gameCompleted";
+                }
                 break;
         }
-
+        //returns proper redirectory endpoint
+        return result;
     }
 
     public List<Level> getLevels() {
@@ -71,22 +103,6 @@ public class LevelServices {
         List<Level> levels = getLevels();
         return levels.get(level - 1);
     }
-
-    public String getBattleOption(Player player){
-        Level currentLevel = getLevelInfo(player.getLevel());
-        String opponent = currentLevel.getOpponent();
-        int opponentHP = currentLevel.getOpponentHP();
-
-        System.out.println("Your opponent is " + opponent + " and their HP level is " + opponentHP);
-        System.out.println("Please choose your attack option: \n" +
-                "1. type low for the low risk attack option\n" +
-                "2. type high for the high risk attack option");
-        String attack = sc.nextLine().toLowerCase();
-        return attack;
-    }
-
-
-
 
 
 }
